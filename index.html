@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14171A">
+<title>El costo de una idea — Sorteo</title>
+<style>
+  :root{
+    /* paleta oficial del evento (Día 2) */
+    --azul:#2E7BC4;
+    --azul-claro:#5AA0DA;
+    --carbon:#14171A;
+    --gris-claro:#FAFBFC;
+    --gris-borde:#8A9199;
+    --verde:#78B345;
+    --amarillo:#FFC000;
+    --rojo:#C60000;
+
+    /* tonos derivados solo para dar profundidad al fondo oscuro */
+    --superficie:#1C2126;
+    --superficie-2:#242A31;
+    --linea:#2B323B;
+    --texto:#F1F4F8;
+    --texto-tenue:#8B95A1;
+
+    --display:"Barlow Semi Condensed","Segoe UI Semibold","Arial Narrow",system-ui,sans-serif;
+    --body:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:ui-monospace,"Cascadia Mono","Segoe UI Mono","Consolas","Liberation Mono",monospace;
+
+    /* toda la escala del layout sale de estas tres variables, igual que en la app del Día 1 */
+    --pad-x:clamp(14px,3.4vw,56px);
+    --pad-y:clamp(10px,2vh,24px);
+    --gap:clamp(12px,2vh,26px);
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{height:100%;-webkit-text-size-adjust:100%}
+
+  body{
+    min-height:100%;
+    min-height:100dvh;
+    background:var(--carbon);
+    color:var(--texto);
+    font-family:var(--body);
+    display:flex;
+    flex-direction:column;
+    -webkit-font-smoothing:antialiased;
+    overscroll-behavior:none;
+    overflow-x:hidden; /* nunca scroll horizontal, en ningún tamaño */
+  }
+
+  button{font:inherit;color:inherit}
+
+  /* ---------- barra superior ---------- */
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:var(--pad-y) var(--pad-x);
+    padding-top:max(var(--pad-y),env(safe-area-inset-top));
+    border-bottom:3px solid var(--azul);
+    background:var(--superficie);
+    flex-shrink:0;
+  }
+  .marca{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .marca h1{
+    font-family:var(--display);
+    font-weight:800;
+    font-stretch:condensed;
+    font-size:clamp(16px,3.6vw,26px);
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    line-height:1.05;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .marca .sub{
+    font-family:var(--mono);
+    font-size:clamp(8px,1.5vw,11px);
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--texto-tenue);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  /* ícono de admin: discreto a propósito, el participante no debe tocarlo por error */
+  .btn-admin{
+    flex-shrink:0;
+    background:transparent;
+    border:none;
+    opacity:.5;
+    cursor:pointer;
+    padding:8px;
+    border-radius:6px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:opacity .15s,background .15s;
+  }
+  .btn-admin:hover{opacity:1;background:rgba(255,255,255,.07)}
+  .btn-admin:focus-visible{outline:2px solid var(--azul);outline-offset:2px;opacity:1}
+  .btn-admin svg{width:20px;height:20px}
+
+  /* ---------- escenario ---------- */
+  .escenario{
+    flex:1 1 auto;
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    justify-content:center;
+    gap:var(--gap);
+    padding:var(--gap) var(--pad-x);
+    min-height:0;
+  }
+
+  .zona-sorteo{display:flex;justify-content:center}
+
+  /* ---------- carta ---------- */
+  .carta-wrap{
+    perspective:1400px;
+    width:min(88vw,360px);
+    min-height:clamp(260px,46vh,400px);
+  }
+  .carta{
+    position:relative;
+    width:100%;
+    height:100%;
+    background:none;
+    border:none;
+    padding:0;
+    cursor:pointer;
+    transform-style:preserve-3d;
+    transition:transform .65s cubic-bezier(.4,.1,.2,1);
+    -webkit-tap-highlight-color:transparent;
+  }
+  .carta:disabled{cursor:default}
+  .cara{
+    position:absolute;
+    inset:0;
+    border-radius:16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:22px;
+    backface-visibility:hidden;
+    -webkit-backface-visibility:hidden;
+    box-shadow:0 12px 32px rgba(0,0,0,.45);
+    text-align:center;
+  }
+  .cara-atras{
+    color:var(--gris-claro);
+    background:
+      repeating-linear-gradient(135deg, rgba(255,255,255,.05) 0 2px, transparent 2px 13px),
+      radial-gradient(circle at 28% 18%, rgba(90,160,218,.4), transparent 60%),
+      linear-gradient(160deg,#1E3E5C,var(--carbon) 72%);
+    border:1px solid #2E3D4C;
+  }
+  .cara-atras svg{width:30%;height:30%;min-width:44px;min-height:44px;opacity:.9}
+  .cara-frente{
+    transform:rotateY(180deg);
+    background:var(--gris-claro);
+    color:var(--carbon);
+    border:1px solid var(--gris-borde);
+  }
+  .cara-frente .texto-mision{
+    font-family:var(--display);
+    font-weight:800;
+    font-size:clamp(19px,4.6vw,30px);
+    line-height:1.22;
+  }
+
+  .carta.barajando{animation:barajar 1.7s cubic-bezier(.25,.6,.35,1) both}
+  @keyframes barajar{
+    0%{transform:translateX(0) rotate(0) scale(1)}
+    10%{transform:translateX(-16px) rotate(-7deg)}
+    22%{transform:translateX(14px) rotate(6deg) scale(1.02)}
+    34%{transform:translateX(-11px) rotate(-5deg)}
+    46%{transform:translateX(9px) rotate(3deg)}
+    58%{transform:translateX(-6px) rotate(-2deg)}
+    70%{transform:translateX(4px) rotate(1.4deg)}
+    82%{transform:translateX(-2px) rotate(-.6deg)}
+    94%{transform:translateX(1px) rotate(0)}
+    100%{transform:translateX(0) rotate(0) scale(1)}
+  }
+  .carta.elegida{box-shadow:0 0 0 3px var(--azul),0 16px 34px rgba(46,123,196,.4);border-radius:16px}
+  .carta.volteada{transform:rotateY(180deg)}
+
+  /* ---------- modo mazo ---------- */
+  .mazo-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:12px;
+    max-width:560px;
+    width:100%;
+  }
+  @media (max-width:640px){
+    .mazo-grid{grid-template-columns:repeat(2,1fr)}
+  }
+  .carta-wrap--mazo{perspective:1000px;aspect-ratio:3/4;width:auto;min-height:0}
+  .carta--mazo .cara{border-radius:10px;padding:10px}
+  .carta--mazo .cara-atras svg{min-width:26px;min-height:26px}
+  .carta--mazo .cara-frente .texto-mision{font-size:clamp(11px,3.1vw,14px);line-height:1.25}
+  .carta--mazo.descartada{opacity:.32}
+
+  /* ---------- ayuda y botón de sorteo ---------- */
+  .ayuda{
+    min-height:20px;
+    text-align:center;
+    font-family:var(--mono);
+    font-size:clamp(11px,2.6vw,13px);
+    letter-spacing:.06em;
+    color:var(--texto-tenue);
+  }
+  .ayuda.error{color:var(--rojo);font-weight:700}
+
+  .btn-sortear{
+    align-self:center;
+    font-family:var(--display);
+    font-weight:800;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    font-size:clamp(18px,4.6vw,25px);
+    color:#fff;
+    background:var(--azul);
+    border:none;
+    border-radius:10px;
+    padding:clamp(14px,2.2vh,17px) clamp(32px,7vw,54px);
+    min-height:54px;
+    cursor:pointer;
+    box-shadow:0 8px 22px rgba(46,123,196,.35);
+    transition:background .15s,transform .08s;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .btn-sortear:hover{background:#3688D6}
+  .btn-sortear:active{transform:translateY(1px)}
+  .btn-sortear:disabled{background:#3B434E;color:#7A828C;box-shadow:none;cursor:default}
+  .btn-sortear:focus-visible{outline:2px solid var(--gris-claro);outline-offset:3px}
+
+  /* ---------- resultado ---------- */
+  .resultado{display:flex;flex-direction:column;gap:var(--gap);max-width:640px;margin:0 auto;width:100%}
+
+  .bloque{
+    background:var(--gris-claro);
+    color:var(--carbon);
+    border:1px solid var(--gris-borde);
+    border-radius:12px;
+    padding:16px 18px;
+  }
+  .bloque h3{
+    font-family:var(--display);
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+    font-size:clamp(13px,3vw,16px);
+    margin-bottom:10px;
+  }
+  .bloque ol,.bloque ul{
+    padding-left:20px;
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+    font-size:clamp(13.5px,2.6vw,15.5px);
+    line-height:1.42;
+  }
+  .pitch-tiempo{
+    font-family:var(--mono);
+    background:var(--azul);
+    color:#fff;
+    font-size:11px;
+    padding:3px 9px;
+    border-radius:20px;
+    margin-left:8px;
+    letter-spacing:.05em;
+    vertical-align:middle;
+  }
+
+  .bloque-presupuestos{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media (max-width:460px){.bloque-presupuestos{grid-template-columns:1fr}}
+  .presupuesto{
+    background:var(--gris-claro);
+    color:var(--carbon);
+    border:1px solid var(--gris-borde);
+    border-radius:12px;
+    padding:16px 18px;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .presupuesto-creditos{border-top:4px solid var(--azul)}
+  .presupuesto-huella{border-top:4px solid var(--gris-borde)}
+  .presupuesto-num{font-family:var(--display);font-weight:800;font-size:clamp(30px,7vw,42px);line-height:1}
+  .presupuesto-label{font-size:12.5px;letter-spacing:.07em;text-transform:uppercase;color:#454B52;font-weight:700}
+  .escala-huella{display:flex;flex-wrap:wrap;gap:2px 12px;margin-top:8px;font-size:12px;color:#454B52}
+  .escala-item{display:inline-flex;align-items:center;gap:5px}
+  .punto{width:11px;height:11px;border-radius:50%;display:inline-block}
+  .punto-verde{background:var(--verde)}
+  .punto-amarillo{background:var(--amarillo)}
+  .punto-rojo{background:var(--rojo)}
+
+  .cronometros{display:flex;gap:12px;flex-wrap:wrap}
+  .cronometro{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:var(--superficie);
+    border:1px solid var(--linea);
+    border-radius:8px;
+    padding:9px 14px;
+  }
+  .btn-crono{
+    font-family:var(--mono);
+    font-size:11.5px;
+    letter-spacing:.07em;
+    text-transform:uppercase;
+    background:transparent;
+    border:1px solid var(--azul);
+    color:var(--azul-claro);
+    border-radius:6px;
+    padding:9px 12px;
+    min-height:38px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .btn-crono:hover{background:rgba(46,123,196,.16)}
+  .reloj{
+    font-family:var(--mono);
+    font-variant-numeric:tabular-nums;
+    font-size:clamp(20px,5vw,28px);
+    font-weight:600;
+  }
+  .reloj.agotado{color:var(--rojo);animation:parpadeo 1s steps(1,end) infinite}
+  @keyframes parpadeo{50%{opacity:.25}}
+
+  .btn-reiniciar{
+    align-self:center;
+    font-family:var(--display);
+    font-weight:700;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    background:transparent;
+    border:2px solid var(--azul);
+    color:var(--azul-claro);
+    border-radius:9px;
+    padding:12px 28px;
+    min-height:46px;
+    cursor:pointer;
+  }
+  .btn-reiniciar:hover{background:rgba(46,123,196,.14)}
+  .btn-reiniciar:active{transform:translateY(1px)}
+
+  /* ---------- pie ---------- */
+  .pie{
+    text-align:center;
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:#4A5158;
+    padding:10px var(--pad-x) max(10px,env(safe-area-inset-bottom));
+    flex-shrink:0;
+  }
+
+  /* ---------- panel de administración ---------- */
+  .panel{
+    position:fixed;
+    inset:0;
+    background:rgba(8,10,13,.78);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:clamp(10px,3vw,26px);
+    z-index:50;
+  }
+  .panel.abierto{display:flex}
+  .panel-inner{
+    background:var(--gris-claro);
+    color:var(--carbon);
+    border:1px solid var(--gris-borde);
+    border-radius:12px;
+    width:min(640px,100%);
+    max-height:88vh;
+    max-height:88dvh;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    padding:clamp(18px,3vw,26px);
+  }
+  .panel-inner h2{
+    font-family:var(--display);
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    font-size:clamp(19px,4vw,25px);
+    margin-bottom:6px;
+  }
+  .panel-inner .nota{font-size:12.5px;color:#4A5158;line-height:1.55;margin-bottom:16px}
+
+  .fila-switch{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:12px 0;
+    border-top:1px solid var(--gris-borde);
+    border-bottom:1px solid var(--gris-borde);
+    margin-bottom:14px;
+    font-size:13.5px;
+    font-weight:700;
+  }
+  .fila-switch input{width:20px;height:20px;accent-color:var(--azul);cursor:pointer}
+
+  .fila-mision{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #E3E6EA}
+  .switch-mision{display:flex;align-items:center;flex-shrink:0}
+  .switch-mision input{width:19px;height:19px;accent-color:var(--verde);cursor:pointer}
+  .texto-mision-admin{
+    flex:1;
+    min-width:0;
+    background:#fff;
+    border:1px solid var(--gris-borde);
+    border-radius:6px;
+    padding:8px 10px;
+    font-size:13.5px;
+    color:var(--carbon);
+    font-family:inherit;
+  }
+  .texto-mision-admin:focus{outline:2px solid var(--azul)}
+  .btn-eliminar-mision{
+    background:none;
+    border:1px solid var(--gris-borde);
+    color:var(--rojo);
+    width:32px;
+    height:32px;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:15px;
+    flex-shrink:0;
+  }
+  .btn-eliminar-mision:hover{background:rgba(198,0,0,.08)}
+
+  .fila-agregar{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+  .fila-agregar input{
+    flex:1 1 160px;
+    background:#fff;
+    border:1px solid var(--gris-borde);
+    border-radius:6px;
+    padding:10px;
+    font-size:15px;
+    color:var(--carbon);
+  }
+  .fila-agregar input:focus{outline:2px solid var(--azul)}
+  .fila-agregar button{
+    background:var(--azul);
+    color:#fff;
+    border:none;
+    border-radius:6px;
+    padding:10px 16px;
+    min-height:40px;
+    font-family:var(--mono);
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    cursor:pointer;
+  }
+  .fila-agregar button:hover{background:#3688D6}
+
+  .aviso-admin{min-height:18px;font-size:12.5px;color:var(--azul);font-weight:700;margin-top:12px}
+  .aviso-admin.error{color:var(--rojo)}
+
+  .fila-final{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+  .fila-final button{
+    font-family:var(--mono);
+    font-size:11.5px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    padding:10px 14px;
+    min-height:40px;
+    border-radius:6px;
+    cursor:pointer;
+  }
+  #btnRestaurar{background:transparent;border:1px solid var(--gris-borde);color:var(--carbon)}
+  #btnRestaurar:hover{border-color:var(--azul);color:var(--azul)}
+  #btnCerrarAdmin{background:var(--carbon);border:none;color:#fff;margin-left:auto}
+  #btnCerrarAdmin:hover{background:#000}
+
+  /* ---------- celular en vertical: ajustes de densidad ---------- */
+  @media (max-width:640px){
+    .carta-wrap{width:min(84vw,340px);min-height:clamp(220px,42vh,340px)}
+    .cara-frente .texto-mision{font-size:clamp(18px,5.6vw,26px)}
+    .btn-sortear{width:100%}
+    .btn-reiniciar{width:100%}
+  }
+
+  /* ---------- celular acostado: poca altura ---------- */
+  @media (max-height:480px) and (orientation:landscape){
+    .escenario{gap:8px;padding:8px var(--pad-x)}
+    .carta-wrap{min-height:clamp(160px,58vh,240px)}
+    .topbar,.pie{padding-top:6px;padding-bottom:6px}
+    .btn-sortear{padding-top:9px;padding-bottom:9px;min-height:42px}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="marca">
+    <h1>El costo de una idea</h1>
+    <span class="sub">Ready. Set. Join! ESPOL 2026 · Día 2 — Recursos</span>
+  </div>
+  <button class="btn-admin" id="btnAdmin" type="button" aria-label="Panel de administración">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"></circle>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.32 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+    </svg>
+  </button>
+</header>
+
+<main class="escenario">
+
+  <!-- modo por defecto: una sola carta -->
+  <div class="zona-sorteo" id="zonaUnica">
+    <div class="carta-wrap">
+      <button class="carta" id="cartaUnica" type="button" disabled aria-label="Carta de misión, boca abajo">
+        <span class="cara cara-atras">
+          <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="14" y="22" width="36" height="28" rx="6"></rect>
+            <line x1="32" y1="22" x2="32" y2="10"></line>
+            <circle cx="32" cy="7" r="3"></circle>
+            <circle cx="24" cy="36" r="4"></circle>
+            <circle cx="40" cy="36" r="4"></circle>
+            <line x1="22" y1="46" x2="42" y2="46"></line>
+            <line x1="6" y1="30" x2="14" y2="30"></line>
+            <line x1="50" y1="30" x2="58" y2="30"></line>
+          </svg>
+        </span>
+        <span class="cara cara-frente"><span class="texto-mision"></span></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- modo mazo: alternativa opcional, activable desde el panel de admin -->
+  <div class="zona-sorteo zona-mazo" id="zonaMazo" hidden>
+    <div class="mazo-grid" id="mazoGrid"></div>
+  </div>
+
+  <p class="ayuda" id="ayuda" aria-live="polite"></p>
+
+  <button class="btn-sortear" id="btnSortear" type="button">Sortear</button>
+
+  <section class="resultado" id="resultado" hidden aria-live="polite">
+
+    <div class="bloque-presupuestos">
+      <div class="presupuesto presupuesto-creditos">
+        <span class="presupuesto-num">100</span>
+        <span class="presupuesto-label">créditos</span>
+      </div>
+      <div class="presupuesto presupuesto-huella">
+        <span class="presupuesto-num">10</span>
+        <span class="presupuesto-label">puntos de huella</span>
+        <div class="escala-huella">
+          <span class="escala-item"><span class="punto punto-verde"></span>1 = baja</span>
+          <span class="escala-item"><span class="punto punto-amarillo"></span>2 = media</span>
+          <span class="escala-item"><span class="punto punto-rojo"></span>3 = alta</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bloque">
+      <h3>Qué tienes que hacer</h3>
+      <ol>
+        <li>Elige del catálogo lo que necesita tu robot. Tienes 5 minutos.</li>
+        <li>Tu solución debe cubrir obligatoriamente sensores, cerebro, energía y estructura. Software y extras son opcionales.</li>
+        <li>Lo que tú sepas hacer no se paga ni gasta huella.</li>
+        <li>Anota todo en la plantilla y suma tus dos totales.</li>
+      </ol>
+    </div>
+
+    <div class="bloque">
+      <h3>Las tres preguntas del pitch<span class="pitch-tiempo">45 s</span></h3>
+      <ul>
+        <li>¿Qué compraste?</li>
+        <li>¿Qué dejaste fuera?</li>
+        <li>¿Por qué tu solución igual funciona?</li>
+      </ul>
+    </div>
+
+    <div class="cronometros">
+      <div class="cronometro">
+        <button class="btn-crono" id="btnCronoDiseno" type="button">Iniciar 5 min</button>
+        <span class="reloj" id="relojDiseno" hidden>5:00</span>
+      </div>
+      <div class="cronometro">
+        <button class="btn-crono" id="btnCronoPitch" type="button">Iniciar 45 s</button>
+        <span class="reloj" id="relojPitch" hidden>0:45</span>
+      </div>
+    </div>
+
+    <button class="btn-reiniciar" id="btnReiniciar" type="button">Volver a empezar</button>
+  </section>
+
+</main>
+
+<footer class="pie">Club AIROS · ESPOL</footer>
+
+<!-- panel de administración: banco de misiones y modo mazo -->
+<div class="panel" id="panelAdmin">
+  <div class="panel-inner">
+    <h2>Banco de misiones</h2>
+    <p class="nota">Activa o desactiva misiones, agrégalas, edítalas o elimínalas. Los cambios se guardan solos y sobreviven a recargar la página.</p>
+
+    <label class="fila-switch">
+      <input type="checkbox" id="chkModoMazo">
+      <span>Modo mazo (varias cartas en cuadrícula en vez de una sola)</span>
+    </label>
+
+    <div id="listaMisiones"></div>
+
+    <div class="fila-agregar">
+      <input type="text" id="inputNuevaMision" placeholder="Escribe una misión nueva">
+      <button type="button" id="btnAgregarMision">Agregar</button>
+    </div>
+
+    <p class="aviso-admin" id="avisoAdmin"></p>
+
+    <div class="fila-final">
+      <button type="button" id="btnRestaurar">Restaurar banco original</button>
+      <button type="button" id="btnCerrarAdmin">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var $ = function(id){ return document.getElementById(id); };
+
+  /* ======================================================================
+     BANCO DE MISIONES — editar aquí a mano si hace falta cambiar el set
+     inicial. "id" debe ser único; "activa" controla si entra al sorteo.
+     ====================================================================== */
+  var MISIONES_INICIALES = [
+    { id:"m1",  texto:"Monitorear la calidad del aire en tres zonas del campus.", activa:true },
+    { id:"m2",  texto:"Detectar fugas de agua en una tubería enterrada.", activa:true },
+    { id:"m3",  texto:"Inspeccionar una estructura de concreto sin armar andamios.", activa:true },
+    { id:"m4",  texto:"Clasificar los residuos en los puntos de reciclaje del campus.", activa:true },
+    { id:"m5",  texto:"Ayudar a una persona con movilidad reducida a desplazarse dentro de un edificio.", activa:true },
+    { id:"m6",  texto:"Vigilar el nivel de un estero para alertar de posibles inundaciones.", activa:true },
+    { id:"m7",  texto:"Revisar el estado de los cultivos en una finca pequeña.", activa:true },
+    { id:"m8",  texto:"Recoger la basura flotante de un canal.", activa:true },
+    { id:"m9",  texto:"Acompañar y dar aviso en caso de emergencia a un adulto mayor que vive solo.", activa:true },
+    { id:"m10", texto:"Medir la temperatura en espacios públicos para identificar zonas que necesitan sombra.", activa:true }
+  ];
+
+  var CLAVE_ALMACENAMIENTO = "costoDeUnaIdea_v1";
+  var CANTIDAD_CARTAS_MAZO = 6;
+
+  var ICONO_ROBOT =
+    '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">' +
+    '<rect x="14" y="22" width="36" height="28" rx="6"></rect>' +
+    '<line x1="32" y1="22" x2="32" y2="10"></line>' +
+    '<circle cx="32" cy="7" r="3"></circle>' +
+    '<circle cx="24" cy="36" r="4"></circle>' +
+    '<circle cx="40" cy="36" r="4"></circle>' +
+    '<line x1="22" y1="46" x2="42" y2="46"></line>' +
+    '<line x1="6" y1="30" x2="14" y2="30"></line>' +
+    '<line x1="50" y1="30" x2="58" y2="30"></line>' +
+    '</svg>';
+
+  /* ---------- referencias al DOM ---------- */
+  var btnAdmin = $("btnAdmin");
+  var zonaUnica = $("zonaUnica");
+  var cartaUnica = $("cartaUnica");
+  var zonaMazo = $("zonaMazo");
+  var mazoGrid = $("mazoGrid");
+  var ayuda = $("ayuda");
+  var btnSortear = $("btnSortear");
+  var resultado = $("resultado");
+  var btnReiniciar = $("btnReiniciar");
+
+  var panelAdmin = $("panelAdmin");
+  var chkModoMazo = $("chkModoMazo");
+  var listaMisiones = $("listaMisiones");
+  var inputNuevaMision = $("inputNuevaMision");
+  var btnAgregarMision = $("btnAgregarMision");
+  var avisoAdmin = $("avisoAdmin");
+  var btnRestaurar = $("btnRestaurar");
+  var btnCerrarAdmin = $("btnCerrarAdmin");
+
+  var btnCronoDiseno = $("btnCronoDiseno");
+  var relojDiseno = $("relojDiseno");
+  var btnCronoPitch = $("btnCronoPitch");
+  var relojPitch = $("relojPitch");
+
+  /* ---------- estado persistente (localStorage) ---------- */
+  var estado = cargarEstado();
+  var ultimaMisionId = null;
+  var misionActual = null;
+  var enProceso = false;
+
+  function estadoPorDefecto(){
+    return {
+      misiones: MISIONES_INICIALES.map(function(m){ return { id:m.id, texto:m.texto, activa:m.activa }; }),
+      modoMazo:false
+    };
+  }
+
+  function cargarEstado(){
+    try{
+      var guardado = localStorage.getItem(CLAVE_ALMACENAMIENTO);
+      if(!guardado) return estadoPorDefecto();
+      var parsed = JSON.parse(guardado);
+      if(!parsed || !Array.isArray(parsed.misiones) || !parsed.misiones.length) return estadoPorDefecto();
+      return { misiones:parsed.misiones, modoMazo:!!parsed.modoMazo };
+    }catch(e){
+      return estadoPorDefecto();
+    }
+  }
+
+  function guardarEstado(){
+    try{
+      localStorage.setItem(CLAVE_ALMACENAMIENTO, JSON.stringify({ misiones:estado.misiones, modoMazo:estado.modoMazo }));
+    }catch(e){
+      /* almacenamiento no disponible (modo privado, cuota llena...): seguimos solo en memoria */
+    }
+  }
+
+  function reduceMotion(){
+    return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+
+  /* ---------- helpers de sorteo ---------- */
+  function misionesActivas(){
+    return estado.misiones.filter(function(m){ return m.activa; });
+  }
+
+  function elegirMision(){
+    var activas = misionesActivas();
+    if(!activas.length) return null;
+    var candidatas = activas;
+    if(activas.length > 1 && ultimaMisionId){
+      candidatas = activas.filter(function(m){ return m.id !== ultimaMisionId; });
+    }
+    var elegida = candidatas[Math.floor(Math.random() * candidatas.length)];
+    ultimaMisionId = elegida.id;
+    return elegida;
+  }
+
+  /* ---------- construcción del mazo (modo alternativo) ---------- */
+  function construirMazoDom(){
+    mazoGrid.innerHTML = "";
+    for(var i = 0; i < CANTIDAD_CARTAS_MAZO; i++){
+      var wrap = document.createElement("div");
+      wrap.className = "carta-wrap carta-wrap--mazo";
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "carta carta--mazo";
+      btn.disabled = true;
+      btn.setAttribute("aria-label", "Carta de misión, boca abajo");
+      btn.innerHTML = '<span class="cara cara-atras">' + ICONO_ROBOT + '</span>' +
+                       '<span class="cara cara-frente"><span class="texto-mision"></span></span>';
+      wrap.appendChild(btn);
+      mazoGrid.appendChild(wrap);
+    }
+  }
+
+  function cartasActivas(){
+    return estado.modoMazo ? Array.prototype.slice.call(mazoGrid.querySelectorAll(".carta")) : [cartaUnica];
+  }
+
+  /* ---------- modo (única / mazo) ---------- */
+  function mostrarModoActual(){
+    if(estado.modoMazo){
+      zonaUnica.hidden = true;
+      zonaMazo.hidden = false;
+      construirMazoDom();
+    }else{
+      zonaMazo.hidden = true;
+      zonaUnica.hidden = false;
+    }
+  }
+
+  /* ---------- flujo de sorteo ---------- */
+  function sortear(){
+    if(enProceso) return;
+    var activas = misionesActivas();
+    if(!activas.length){
+      ayuda.textContent = "No hay misiones activas. Actívalas desde el panel de administración.";
+      ayuda.classList.add("error");
+      return;
+    }
+    ayuda.classList.remove("error");
+    ayuda.textContent = "";
+    resultado.hidden = true;
+    misionActual = elegirMision();
+
+    var cartas = cartasActivas();
+    cartas.forEach(function(c){
+      c.classList.remove("elegida", "volteada", "descartada");
+      c.disabled = true;
+      var t = c.querySelector(".texto-mision");
+      if(t) t.textContent = "";
+      c.onclick = null;
+    });
+
+    enProceso = true;
+    btnSortear.disabled = true;
+
+    if(reduceMotion()){
+      finalizarBarajado(cartas);
+      return;
+    }
+
+    cartas.forEach(function(c){
+      c.style.animationDelay = Math.round(Math.random() * 120) + "ms";
+      c.classList.add("barajando");
+    });
+
+    window.setTimeout(function(){
+      cartas.forEach(function(c){ c.classList.remove("barajando"); c.style.animationDelay = ""; });
+      finalizarBarajado(cartas);
+    }, 1700 + 130);
+  }
+
+  function finalizarBarajado(cartas){
+    enProceso = false;
+    btnSortear.disabled = false;
+    cartas.forEach(function(c){
+      c.classList.add("elegida");
+      c.disabled = false;
+    });
+
+    if(estado.modoMazo){
+      ayuda.textContent = "Toca la carta que quieras";
+      cartas.forEach(function(c){
+        c.onclick = function(){ alTocarCartaMazo(c, cartas); };
+      });
+    }else{
+      ayuda.textContent = "Toca la carta para ver tu misión";
+      cartaUnica.onclick = function(){ revelarEnCarta(cartaUnica); };
+    }
+  }
+
+  function alTocarCartaMazo(carta, todas){
+    if(!carta.classList.contains("elegida")) return;
+    revelarEnCarta(carta);
+    todas.forEach(function(c){
+      if(c !== carta){
+        c.disabled = true;
+        c.classList.add("descartada");
+        c.onclick = null;
+      }
+    });
+  }
+
+  function revelarEnCarta(carta){
+    if(!misionActual) return;
+    carta.classList.remove("elegida");
+    carta.classList.add("volteada");
+    carta.disabled = true;
+    carta.onclick = null;
+    var t = carta.querySelector(".texto-mision");
+    if(t) t.textContent = misionActual.texto;
+
+    resultado.hidden = false;
+    ayuda.textContent = "";
+    window.setTimeout(function(){
+      resultado.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block:"start" });
+    }, reduceMotion() ? 0 : 480);
+  }
+
+  function reiniciarSuave(){
+    resultado.hidden = true;
+    misionActual = null;
+    ayuda.classList.remove("error");
+    ayuda.textContent = "";
+    cronoDiseno.reset();
+    cronoPitch.reset();
+    btnSortear.disabled = false;
+    enProceso = false;
+  }
+
+  function reiniciar(){
+    reiniciarSuave();
+    if(estado.modoMazo){
+      construirMazoDom();
+    }else{
+      cartaUnica.classList.remove("volteada", "elegida", "descartada");
+      cartaUnica.disabled = true;
+      cartaUnica.onclick = null;
+      var t = cartaUnica.querySelector(".texto-mision");
+      if(t) t.textContent = "";
+    }
+    window.scrollTo({ top:0, behavior: reduceMotion() ? "auto" : "smooth" });
+  }
+
+  /* ---------- cronómetros (diseño 5 min, pitch 45 s) ---------- */
+  function crearControladorCrono(duracionSeg, elBoton, elReloj, etiquetaInicio){
+    var restante = duracionSeg;
+    var intervalId = null;
+    var fase = "idle"; // idle | corriendo | terminado
+
+    function formatear(s){
+      var m = Math.floor(s / 60);
+      var r = s % 60;
+      return m + ":" + (r < 10 ? "0" + r : r);
+    }
+    function pintar(){ elReloj.textContent = formatear(restante); }
+    function limpiarIntervalo(){
+      if(intervalId){ window.clearInterval(intervalId); intervalId = null; }
+    }
+    function irAIdle(){
+      limpiarIntervalo();
+      fase = "idle";
+      restante = duracionSeg;
+      elReloj.hidden = true;
+      elReloj.classList.remove("agotado");
+      elBoton.textContent = etiquetaInicio;
+    }
+    function iniciar(){
+      fase = "corriendo";
+      elReloj.hidden = false;
+      elReloj.classList.remove("agotado");
+      elBoton.textContent = "Detener";
+      pintar();
+      intervalId = window.setInterval(function(){
+        restante--;
+        if(restante <= 0){
+          restante = 0;
+          pintar();
+          limpiarIntervalo();
+          fase = "terminado";
+          elReloj.classList.add("agotado");
+          elBoton.textContent = "Reiniciar";
+          if("vibrate" in navigator){ navigator.vibrate(250); }
+        }else{
+          pintar();
+        }
+      }, 1000);
+    }
+    elBoton.addEventListener("click", function(){
+      if(fase === "idle"){ iniciar(); }
+      else if(fase === "corriendo"){ irAIdle(); }
+      else { irAIdle(); iniciar(); }
+    });
+    return { reset: irAIdle };
+  }
+
+  var cronoDiseno = crearControladorCrono(300, btnCronoDiseno, relojDiseno, "Iniciar 5 min");
+  var cronoPitch = crearControladorCrono(45, btnCronoPitch, relojPitch, "Iniciar 45 s");
+
+  /* ---------- panel de administración ---------- */
+  var confirmarRestaurarPendiente = false;
+  var idTimeoutConfirmar = null;
+
+  function abrirAdmin(){
+    renderListaMisiones();
+    chkModoMazo.checked = estado.modoMazo;
+    avisoAdmin.textContent = "";
+    avisoAdmin.classList.remove("error");
+    panelAdmin.classList.add("abierto");
+  }
+  function cerrarAdmin(){
+    panelAdmin.classList.remove("abierto");
+    confirmarRestaurarPendiente = false;
+  }
+
+  function renderListaMisiones(){
+    listaMisiones.innerHTML = "";
+    estado.misiones.forEach(function(m){
+      var fila = document.createElement("div");
+      fila.className = "fila-mision";
+
+      var lbl = document.createElement("label");
+      lbl.className = "switch-mision";
+      var chk = document.createElement("input");
+      chk.type = "checkbox";
+      chk.checked = m.activa;
+      chk.setAttribute("aria-label", "Activar o desactivar misión");
+      chk.addEventListener("change", function(){
+        m.activa = chk.checked;
+        guardarEstado();
+      });
+      lbl.appendChild(chk);
+
+      var txt = document.createElement("input");
+      txt.type = "text";
+      txt.className = "texto-mision-admin";
+      txt.value = m.texto;
+      txt.addEventListener("change", function(){
+        var v = txt.value.trim();
+        if(v){ m.texto = v; guardarEstado(); }
+        else { txt.value = m.texto; }
+      });
+
+      var btnDel = document.createElement("button");
+      btnDel.type = "button";
+      btnDel.className = "btn-eliminar-mision";
+      btnDel.textContent = "✕";
+      btnDel.setAttribute("aria-label", "Eliminar misión");
+      btnDel.addEventListener("click", function(){
+        estado.misiones = estado.misiones.filter(function(x){ return x.id !== m.id; });
+        guardarEstado();
+        renderListaMisiones();
+      });
+
+      fila.appendChild(lbl);
+      fila.appendChild(txt);
+      fila.appendChild(btnDel);
+      listaMisiones.appendChild(fila);
+    });
+  }
+
+  function agregarMision(){
+    var v = inputNuevaMision.value.trim();
+    if(!v){
+      avisoAdmin.textContent = "Escribe un texto antes de agregar.";
+      avisoAdmin.classList.add("error");
+      return;
+    }
+    estado.misiones.push({ id:"m" + Date.now(), texto:v, activa:true });
+    inputNuevaMision.value = "";
+    avisoAdmin.textContent = "Misión agregada.";
+    avisoAdmin.classList.remove("error");
+    guardarEstado();
+    renderListaMisiones();
+  }
+
+  function restaurarBanco(){
+    if(!confirmarRestaurarPendiente){
+      confirmarRestaurarPendiente = true;
+      avisoAdmin.textContent = "Vuelve a tocar \"Restaurar banco original\" para confirmar.";
+      avisoAdmin.classList.remove("error");
+      if(idTimeoutConfirmar) window.clearTimeout(idTimeoutConfirmar);
+      idTimeoutConfirmar = window.setTimeout(function(){ confirmarRestaurarPendiente = false; }, 6000);
+      return;
+    }
+    confirmarRestaurarPendiente = false;
+    if(idTimeoutConfirmar) window.clearTimeout(idTimeoutConfirmar);
+    estado.misiones = MISIONES_INICIALES.map(function(m){ return { id:m.id, texto:m.texto, activa:m.activa }; });
+    guardarEstado();
+    renderListaMisiones();
+    avisoAdmin.textContent = "Banco restaurado a las misiones originales.";
+  }
+
+  chkModoMazo.addEventListener("change", function(){
+    estado.modoMazo = chkModoMazo.checked;
+    guardarEstado();
+    mostrarModoActual();
+    reiniciarSuave();
+  });
+
+  btnAdmin.addEventListener("click", abrirAdmin);
+  btnCerrarAdmin.addEventListener("click", cerrarAdmin);
+  panelAdmin.addEventListener("click", function(e){ if(e.target === panelAdmin) cerrarAdmin(); });
+  btnAgregarMision.addEventListener("click", agregarMision);
+  inputNuevaMision.addEventListener("keydown", function(e){
+    if(e.key === "Enter"){ e.preventDefault(); agregarMision(); }
+  });
+  btnRestaurar.addEventListener("click", restaurarBanco);
+  document.addEventListener("keydown", function(e){
+    if(e.key === "Escape" && panelAdmin.classList.contains("abierto")) cerrarAdmin();
+  });
+
+  /* ---------- eventos principales ---------- */
+  btnSortear.addEventListener("click", sortear);
+  btnReiniciar.addEventListener("click", reiniciar);
+
+  /* ---------- arranque ---------- */
+  mostrarModoActual();
+})();
+</script>
+</body>
+</html>
