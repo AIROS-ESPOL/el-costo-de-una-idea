@@ -31,7 +31,7 @@
     /* toda la escala del layout sale de estas tres variables, igual que en la app del Día 1 */
     --pad-x:clamp(14px,3.4vw,56px);
     --pad-y:clamp(10px,2vh,24px);
-    --gap:clamp(12px,2vh,26px);
+    --gap:clamp(10px,1.6vh,20px);
   }
 
   *{box-sizing:border-box;margin:0;padding:0}
@@ -112,9 +112,9 @@
     display:flex;
     flex-direction:column;
     align-items:stretch;
-    justify-content:center;
+    justify-content:flex-start;
     gap:var(--gap);
-    padding:var(--gap) var(--pad-x);
+    padding:var(--pad-y) var(--pad-x) var(--gap);
     min-height:0;
   }
 
@@ -124,7 +124,7 @@
   .carta-wrap{
     perspective:1400px;
     width:min(88vw,360px);
-    min-height:clamp(260px,46vh,400px);
+    min-height:clamp(220px,38vh,360px);
   }
   .carta{
     position:relative;
@@ -452,7 +452,7 @@
 
   /* ---------- celular en vertical: ajustes de densidad ---------- */
   @media (max-width:640px){
-    .carta-wrap{width:min(84vw,340px);min-height:clamp(220px,42vh,340px)}
+    .carta-wrap{width:min(84vw,340px);min-height:clamp(190px,34vh,300px)}
     .cara-frente .texto-mision{font-size:clamp(18px,5.6vw,26px)}
     .btn-sortear{width:100%}
     .btn-reiniciar{width:100%}
@@ -588,16 +588,26 @@
      inicial. "id" debe ser único; "activa" controla si entra al sorteo.
      ====================================================================== */
   var MISIONES_INICIALES = [
-    { id:"m1",  texto:"Monitorear la calidad del aire en tres zonas del campus.", activa:true },
-    { id:"m2",  texto:"Detectar fugas de agua en una tubería enterrada.", activa:true },
-    { id:"m3",  texto:"Inspeccionar una estructura de concreto sin armar andamios.", activa:true },
-    { id:"m4",  texto:"Clasificar los residuos en los puntos de reciclaje del campus.", activa:true },
-    { id:"m5",  texto:"Ayudar a una persona con movilidad reducida a desplazarse dentro de un edificio.", activa:true },
-    { id:"m6",  texto:"Vigilar el nivel de un estero para alertar de posibles inundaciones.", activa:true },
-    { id:"m7",  texto:"Revisar el estado de los cultivos en una finca pequeña.", activa:true },
-    { id:"m8",  texto:"Recoger la basura flotante de un canal.", activa:true },
-    { id:"m9",  texto:"Acompañar y dar aviso en caso de emergencia a un adulto mayor que vive solo.", activa:true },
-    { id:"m10", texto:"Medir la temperatura en espacios públicos para identificar zonas que necesitan sombra.", activa:true }
+    { id:"m1",  texto:"Monitorear la calidad del aire en tres zonas del campus e indicar cuál es la más contaminada.", activa:true },
+    { id:"m2",  texto:"Detectar en qué tramo de una tubería enterrada se está perdiendo agua.", activa:true },
+    { id:"m3",  texto:"Inspeccionar las grietas de un puente peatonal sin armar andamios.", activa:true },
+    { id:"m4",  texto:"Separar los residuos reciclables de los que no lo son en un punto de acopio del campus.", activa:true },
+    { id:"m5",  texto:"Guiar a una persona con movilidad reducida hasta un aula dentro de un edificio que no conoce.", activa:true },
+    { id:"m6",  texto:"Vigilar el nivel de un estero y avisar a la comunidad antes de que se desborde.", activa:true },
+    { id:"m7",  texto:"Revisar los cultivos de una finca pequeña y señalar qué sector necesita riego.", activa:true },
+    { id:"m8",  texto:"Recoger la basura flotante de un canal y llevarla hasta la orilla.", activa:true },
+    { id:"m9",  texto:"Acompañar a un adulto mayor que vive solo y dar aviso si sufre una caída.", activa:true },
+    { id:"m10", texto:"Medir la temperatura de las plazas del campus durante toda una semana e identificar dónde hace falta sombra.", activa:true },
+    { id:"m11", texto:"Contar cuántas personas cruzan una calle sin semáforo para justificar su instalación.", activa:true },
+    { id:"m12", texto:"Encontrar y marcar los baches de una vía del barrio antes de que empeoren con las lluvias.", activa:true },
+    { id:"m13", texto:"Llevar medicamentos entre dos edificios de un hospital sin interrumpir la circulación.", activa:true },
+    { id:"m14", texto:"Buscar señales de personas atrapadas entre los escombros después de un sismo.", activa:true },
+    { id:"m15", texto:"Revisar los paneles solares del techo de un edificio y avisar cuáles están sucios o dañados.", activa:true },
+    { id:"m16", texto:"Avisar a los recolectores cuando un contenedor comunitario de basura llega a su tope.", activa:true },
+    { id:"m17", texto:"Vigilar de noche una obra de construcción y alertar si alguien ingresa al terreno.", activa:true },
+    { id:"m18", texto:"Mantener con vida el huerto de una escuela durante las seis semanas de vacaciones.", activa:true },
+    { id:"m19", texto:"Medir la profundidad y los obstáculos del fondo de un canal antes de dragarlo.", activa:true },
+    { id:"m20", texto:"Ayudar a un comerciante de mercado a mover cargas pesadas entre dos puestos.", activa:true }
   ];
 
   var CLAVE_ALMACENAMIENTO = "costoDeUnaIdea_v1";
