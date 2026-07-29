@@ -244,41 +244,6 @@
   /* ---------- resultado ---------- */
   .resultado{display:flex;flex-direction:column;gap:var(--gap);max-width:640px;margin:0 auto;width:100%}
 
-  .bloque{
-    background:var(--gris-claro);
-    color:var(--carbon);
-    border:1px solid var(--gris-borde);
-    border-radius:12px;
-    padding:16px 18px;
-  }
-  .bloque h3{
-    font-family:var(--display);
-    font-weight:800;
-    text-transform:uppercase;
-    letter-spacing:.03em;
-    font-size:clamp(13px,3vw,16px);
-    margin-bottom:10px;
-  }
-  .bloque ol,.bloque ul{
-    padding-left:20px;
-    display:flex;
-    flex-direction:column;
-    gap:7px;
-    font-size:clamp(13.5px,2.6vw,15.5px);
-    line-height:1.42;
-  }
-  .pitch-tiempo{
-    font-family:var(--mono);
-    background:var(--azul);
-    color:#fff;
-    font-size:11px;
-    padding:3px 9px;
-    border-radius:20px;
-    margin-left:8px;
-    letter-spacing:.05em;
-    vertical-align:middle;
-  }
-
   .bloque-presupuestos{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   @media (max-width:460px){.bloque-presupuestos{grid-template-columns:1fr}}
   .presupuesto{
@@ -302,7 +267,7 @@
   .punto-amarillo{background:var(--amarillo)}
   .punto-rojo{background:var(--rojo)}
 
-  .cronometros{display:flex;gap:12px;flex-wrap:wrap}
+  .cronometros{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
   .cronometro{
     display:flex;
     align-items:center;
@@ -571,33 +536,10 @@
       </div>
     </div>
 
-    <div class="bloque">
-      <h3>Qué tienes que hacer</h3>
-      <ol>
-        <li>Elige del catálogo lo que necesita tu robot. Tienes 5 minutos.</li>
-        <li>Tu solución debe cubrir obligatoriamente sensores, cerebro, energía y estructura. Software y extras son opcionales.</li>
-        <li>Lo que tú sepas hacer no se paga ni gasta huella.</li>
-        <li>Anota todo en la plantilla y suma tus dos totales.</li>
-      </ol>
-    </div>
-
-    <div class="bloque">
-      <h3>Las tres preguntas del pitch<span class="pitch-tiempo">45 s</span></h3>
-      <ul>
-        <li>¿Qué compraste?</li>
-        <li>¿Qué dejaste fuera?</li>
-        <li>¿Por qué tu solución igual funciona?</li>
-      </ul>
-    </div>
-
     <div class="cronometros">
       <div class="cronometro">
-        <button class="btn-crono" id="btnCronoDiseno" type="button">Iniciar 5 min</button>
-        <span class="reloj" id="relojDiseno" hidden>5:00</span>
-      </div>
-      <div class="cronometro">
-        <button class="btn-crono" id="btnCronoPitch" type="button">Iniciar 45 s</button>
-        <span class="reloj" id="relojPitch" hidden>0:45</span>
+        <button class="btn-crono" id="btnCronoDiseno" type="button">Iniciar 8 min</button>
+        <span class="reloj" id="relojDiseno" hidden>8:00</span>
       </div>
     </div>
 
@@ -695,8 +637,6 @@
 
   var btnCronoDiseno = $("btnCronoDiseno");
   var relojDiseno = $("relojDiseno");
-  var btnCronoPitch = $("btnCronoPitch");
-  var relojPitch = $("relojPitch");
 
   /* ---------- estado persistente (localStorage) ---------- */
   var estado = cargarEstado();
@@ -870,8 +810,10 @@
 
     resultado.hidden = false;
     ayuda.textContent = "";
+    /* al revelar, la carta con el texto de la misión debe quedar visible arriba;
+       antes esto saltaba directo al bloque de resultado y tapaba la carta */
     window.setTimeout(function(){
-      resultado.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block:"start" });
+      carta.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block:"start" });
     }, reduceMotion() ? 0 : 480);
   }
 
@@ -881,7 +823,6 @@
     ayuda.classList.remove("error");
     ayuda.textContent = "";
     cronoDiseno.reset();
-    cronoPitch.reset();
     btnSortear.disabled = false;
     enProceso = false;
   }
@@ -900,7 +841,7 @@
     window.scrollTo({ top:0, behavior: reduceMotion() ? "auto" : "smooth" });
   }
 
-  /* ---------- cronómetros (diseño 5 min, pitch 45 s) ---------- */
+  /* ---------- cronómetro (diseño, 8 min) ---------- */
   function crearControladorCrono(duracionSeg, elBoton, elReloj, etiquetaInicio){
     var restante = duracionSeg;
     var intervalId = null;
@@ -952,8 +893,7 @@
     return { reset: irAIdle };
   }
 
-  var cronoDiseno = crearControladorCrono(300, btnCronoDiseno, relojDiseno, "Iniciar 5 min");
-  var cronoPitch = crearControladorCrono(45, btnCronoPitch, relojPitch, "Iniciar 45 s");
+  var cronoDiseno = crearControladorCrono(480, btnCronoDiseno, relojDiseno, "Iniciar 8 min");
 
   /* ---------- panel de administración ---------- */
   var confirmarRestaurarPendiente = false;
