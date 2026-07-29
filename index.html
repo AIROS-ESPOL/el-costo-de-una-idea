@@ -114,7 +114,7 @@
     align-items:stretch;
     justify-content:center;
     gap:var(--gap);
-    padding:var(--gap) var(--pad-x);
+    padding:var(--gap) var(--pad-x) max(var(--gap),env(safe-area-inset-bottom));
     min-height:0;
   }
 
@@ -318,18 +318,6 @@
   .btn-reiniciar:hover{background:rgba(46,123,196,.14)}
   .btn-reiniciar:active{transform:translateY(1px)}
 
-  /* ---------- pie ---------- */
-  .pie{
-    text-align:center;
-    font-family:var(--mono);
-    font-size:10.5px;
-    letter-spacing:.14em;
-    text-transform:uppercase;
-    color:#4A5158;
-    padding:10px var(--pad-x) max(10px,env(safe-area-inset-bottom));
-    flex-shrink:0;
-  }
-
   /* ---------- panel de administración ---------- */
   .panel{
     position:fixed;
@@ -462,7 +450,7 @@
   @media (max-height:480px) and (orientation:landscape){
     .escenario{gap:8px;padding:8px var(--pad-x)}
     .carta-wrap{min-height:clamp(160px,58vh,240px)}
-    .topbar,.pie{padding-top:6px;padding-bottom:6px}
+    .topbar{padding-top:6px;padding-bottom:6px}
     .btn-sortear{padding-top:9px;padding-bottom:9px;min-height:42px}
   }
 
@@ -547,8 +535,6 @@
   </section>
 
 </main>
-
-<footer class="pie">Club AIROS · ESPOL</footer>
 
 <!-- panel de administración: banco de misiones y modo mazo -->
 <div class="panel" id="panelAdmin">
